@@ -1,0 +1,2268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razorpay Admin - Instrument Requests</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            width: 240px;
+            background: #2d3748;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-logo img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .sidebar-logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: #5568d3;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px 0;
+        }
+
+        .nav-item {
+            padding: 10px 20px;
+            color: #cbd5e0;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: rgba(85, 104, 211, 0.15);
+            color: white;
+            border-left: 3px solid #5568d3;
+        }
+
+        .nav-item-icon {
+            width: 16px;
+            text-align: center;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 240px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .top-bar-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: #2d3748;
+        }
+
+        /* Content Container */
+        .content-container {
+            padding: 32px;
+            flex: 1;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 24px;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 32px;
+        }
+
+        .tab {
+            padding: 12px 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: #718096;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #2d3748;
+        }
+
+        .tab.active {
+            color: #5568d3;
+            border-bottom-color: #5568d3;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        /* Button */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #5568d3;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4752b8;
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #f7fafc;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        /* Modal */
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .modal-close {
+            font-size: 24px;
+            color: #a0aec0;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .modal-close:hover {
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: #e53e3e;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #5568d3;
+            box-shadow: 0 0 0 3px rgba(85, 104, 211, 0.1);
+        }
+
+        .form-input:disabled {
+            background: #f7fafc;
+            cursor: not-allowed;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 6px;
+        }
+
+        .error-text {
+            font-size: 12px;
+            color: #e53e3e;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .form-group.error .form-input {
+            border-color: #e53e3e;
+        }
+
+        .form-group.error .error-text {
+            display: block;
+        }
+
+        .form-group.success .form-input {
+            border-color: #48bb78;
+        }
+
+        .validation-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+        }
+
+        /* Radio Group */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: flex-start;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .radio-option:hover {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+        }
+
+        .radio-option.selected {
+            background: #eef2ff;
+            border-color: #5568d3;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-top: 2px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .radio-content {
+            flex: 1;
+        }
+
+        .radio-label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .radio-description {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        /* Checkbox */
+        .checkbox-container {
+            display: flex;
+            align-items: flex-start;
+            padding: 14px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin-top: 2px;
+            margin-right: 10px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .checkbox-label {
+            font-size: 13px;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 14px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .alert-warning {
+            background: #fffbeb;
+            border: 1px solid #fbbf24;
+            color: #78350f;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border: 1px solid #60a5fa;
+            color: #1e3a8a;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+
+        .alert-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .alert-content {
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        .alert-title {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-sebi {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Progress Steps */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: 0;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            margin: 0 auto 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #a0aec0;
+            font-size: 12px;
+        }
+
+        .progress-step.active .progress-circle {
+            background: #5568d3;
+            color: white;
+        }
+
+        .progress-step.completed .progress-circle {
+            background: #48bb78;
+            color: white;
+        }
+
+        .progress-label {
+            font-size: 11px;
+            color: #a0aec0;
+            font-weight: 600;
+        }
+
+        .progress-step.active .progress-label {
+            color: #5568d3;
+        }
+
+        .progress-step.completed .progress-label {
+            color: #48bb78;
+        }
+
+        /* Merchant Info Card */
+        .merchant-card {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .merchant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .merchant-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .merchant-id {
+            font-size: 12px;
+            color: #718096;
+            font-family: monospace;
+        }
+
+        .merchant-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-label {
+            font-size: 11px;
+            color: #718096;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-size: 13px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        /* Summary Card */
+        .summary-card {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 14px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #718096;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .summary-value {
+            font-size: 13px;
+            color: #2d3748;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        /* QC Checklist */
+        .qc-checklist {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 14px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            margin-top: 2px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checklist-content {
+            flex: 1;
+        }
+
+        .checklist-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+
+        .checklist-meta {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        /* Success Container */
+        .success-container {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .success-title {
+            font-size: 20px;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .success-description {
+            color: #718096;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        /* Screen Management */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Utility */
+        .hidden {
+            display: none !important;
+        }
+
+        .mt-3 {
+            margin-top: 12px;
+        }
+
+        .mb-3 {
+            margin-bottom: 12px;
+        }
+
+        /* File Upload */
+        .file-upload {
+            border: 2px dashed #cbd5e0;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-upload:hover {
+            border-color: #5568d3;
+            background: #f7fafc;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-icon {
+            font-size: 40px;
+            color: #cbd5e0;
+            margin-bottom: 10px;
+        }
+
+        .file-text {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .uploaded-file {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .file-name {
+            font-size: 13px;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .file-remove {
+            color: #e53e3e;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 7L12 3L21 7V17L12 21L3 17V7Z" fill="#5568d3"/>
+            </svg>
+            <span class="sidebar-logo-text">Razorpay</span>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-item">
+                <span class="nav-item-icon">👥</span>
+                Users
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">🌐</span>
+                Gateway
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">⚡</span>
+                Activations
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">💼</span>
+                Current Accounts
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">📊</span>
+                Capital Reports
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">⚡</span>
+                Instant Activations
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">💰</span>
+                Pricing Plans
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">⚖️</span>
+                Disputes
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">🔧</span>
+                Gateway Rules
+            </div>
+            <div class="nav-item active">
+                <span class="nav-item-icon">📝</span>
+                Instrument Requests
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">💵</span>
+                Special Pricing Req.
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">⏸️</span>
+                Downtimes
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">🔴</span>
+                RX Downtimes
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">🏢</span>
+                Entities
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">📈</span>
+                MNRL Dashboard
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">🛡️</span>
+                Shield Dashboard
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">⚙️</span>
+                Actions
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">✉️</span>
+                Email Logs
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">🎯</span>
+                Public Features
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">📊</span>
+                Ops Dashboard
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">🔄</span>
+                Recon Dashboard
+            </div>
+            <div class="nav-item">
+                <span class="nav-item-icon">🌍</span>
+                Cross Border
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-bar-title">Instrument Requests</div>
+            <div class="top-bar-user">
+                <span class="user-name">Revanth Murugan ▼</span>
+            </div>
+        </div>
+
+        <!-- Content Container -->
+        <div class="content-container">
+            <!-- Screen 1: Main Dashboard -->
+            <div id="screen1" class="screen active">
+                <div class="tabs">
+                    <div class="tab active">Bank Ops</div>
+                    <div class="tab">KAM</div>
+                </div>
+
+                <div class="action-bar">
+                    <div style="font-size: 16px; font-weight: 600; color: #2d3748;">
+                        Instrument Requests
+                    </div>
+                    <button class="btn btn-primary" onclick="openInstrumentRequestModal()">
+                        + New Instrument Request
+                    </button>
+                </div>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">ℹ️</span>
+                    <div class="alert-content">
+                        <div class="alert-title">SEBI OC217 Compliance</div>
+                        For SEBI-regulated merchants, select "OC217" feature when creating instrument requests to enable validated UPI IDs.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 2: OC217 Search -->
+            <div id="screen2" class="screen">
+                <button class="btn btn-secondary mb-3" onclick="goToScreen(1)">← Back to Dashboard</button>
+
+                <div style="background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <h2 style="font-size: 18px; font-weight: 700; color: #2d3748; margin-bottom: 8px;">
+                        OC217 SEBI-Regulated Terminal Procurement
+                    </h2>
+                    <p style="font-size: 14px; color: #718096; margin-bottom: 24px;">
+                        Verify merchant details for SEBI-compliant UPI terminal setup
+                    </p>
+
+                    <div class="alert alert-info">
+                        <span class="alert-icon">ℹ️</span>
+                        <div class="alert-content">
+                            <strong>Selected Banks:</strong> <span id="selectedBanksList">-</span><br/>
+                            Separate IIRs will be created for each bank after configuration.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Merchant ID</label>
+                        <input type="text" class="form-input" id="merchantSearch" placeholder="Enter Merchant ID (M12345) or Business Name" />
+                    </div>
+
+                    <div id="searchResults" class="hidden">
+                        <div class="merchant-card">
+                            <div class="merchant-header">
+                                <div>
+                                    <div class="merchant-name">ABC Mutual Fund</div>
+                                    <div class="merchant-id">M12345</div>
+                                </div>
+                                <div>
+                                    <span class="badge badge-sebi">⚠️ SEBI Regulated</span>
+                                </div>
+                            </div>
+
+                            <div class="merchant-details">
+                                <div class="detail-item">
+                                    <div class="detail-label">Category</div>
+                                    <div class="detail-value">Financial Services</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Sub-Category</div>
+                                    <div class="detail-value">Mutual Funds (mf)</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">MCC</div>
+                                    <div class="detail-value">6211</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">SEBI Reg#</div>
+                                    <div class="detail-value">INZ000123456</div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning mt-3">
+                                <span class="alert-icon">⚠️</span>
+                                <div class="alert-content">
+                                    <div class="alert-title">OC217 Template Required</div>
+                                    This merchant requires validated UPI ID (@valid handles) for payment collection.
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 20px;">
+                                <button class="btn btn-primary" onclick="goToScreen(3)">
+                                    Proceed to Terminal Configuration →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 3: Terminal Type Selection -->
+            <div id="screen3" class="screen">
+                <button class="btn btn-secondary mb-3" onclick="goToScreen(2)">← Back</button>
+
+                <div class="progress-steps">
+                    <div class="progress-step completed">
+                        <div class="progress-circle">✓</div>
+                        <div class="progress-label">Search</div>
+                    </div>
+                    <div class="progress-step active">
+                        <div class="progress-circle">2</div>
+                        <div class="progress-label">Terminal Type</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-circle">3</div>
+                        <div class="progress-label">VPA Details</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-circle">4</div>
+                        <div class="progress-label">Review</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-circle">5</div>
+                        <div class="progress-label">Submit</div>
+                    </div>
+                </div>
+
+                <div style="background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <h2 style="font-size: 18px; font-weight: 700; color: #2d3748; margin-bottom: 8px;">
+                        Select Terminal Type
+                    </h2>
+                    <p style="font-size: 14px; color: #718096; margin-bottom: 24px;">
+                        Choose which UPI terminal the merchant needs
+                    </p>
+
+                    <div class="alert alert-info">
+                        <span class="alert-icon">ℹ️</span>
+                        <div class="alert-content">
+                            <div class="alert-title">OC217 Template Auto-Applied</div>
+                            This flow will automatically use the SEBI-compliant OC217 template.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Terminal Type <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-option" onclick="selectTerminalType('one_time')">
+                                <input type="radio" name="terminalType" value="one_time" id="oneTime" />
+                                <div class="radio-content">
+                                    <div class="radio-label">UPI One-Time Payments</div>
+                                    <div class="radio-description">For single transaction payments (mutual fund SIPs, stock purchases)</div>
+                                </div>
+                            </div>
+                            <div class="radio-option" onclick="selectTerminalType('autopay')">
+                                <input type="radio" name="terminalType" value="autopay" id="autopay" />
+                                <div class="radio-content">
+                                    <div class="radio-label">UPI Autopay (Recurring)</div>
+                                    <div class="radio-description">For recurring/mandate payments (SIP autopay, monthly plans)</div>
+                                </div>
+                            </div>
+                            <div class="radio-option" onclick="selectTerminalType('both')">
+                                <input type="radio" name="terminalType" value="both" id="both" />
+                                <div class="radio-content">
+                                    <div class="radio-label">Both (One-Time + Autopay)</div>
+                                    <div class="radio-description">Create separate IIRs for each terminal type</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; display: flex; gap: 12px;">
+                        <button class="btn btn-secondary" onclick="goToScreen(2)">← Back</button>
+                        <button class="btn btn-primary" id="terminalTypeNext" disabled onclick="startBankConfiguration()">Continue →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 4: VPA Details -->
+            <div id="screen4" class="screen">
+                <button class="btn btn-secondary mb-3" onclick="goToPreviousBank()">← Back</button>
+
+                <div class="progress-steps">
+                    <div class="progress-step completed">
+                        <div class="progress-circle">✓</div>
+                        <div class="progress-label">Search</div>
+                    </div>
+                    <div class="progress-step completed">
+                        <div class="progress-circle">✓</div>
+                        <div class="progress-label">Terminal Type</div>
+                    </div>
+                    <div class="progress-step active">
+                        <div class="progress-circle">3</div>
+                        <div class="progress-label">Bank Config</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-circle">4</div>
+                        <div class="progress-label">Review</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-circle">5</div>
+                        <div class="progress-label">Submit</div>
+                    </div>
+                </div>
+
+                <div style="background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h2 style="font-size: 18px; font-weight: 700; color: #2d3748;">
+                            <span id="currentBankName">-</span> Bank Configuration
+                        </h2>
+                        <span class="badge badge-sebi" id="bankProgress">Bank 1 of 1</span>
+                    </div>
+                    <p style="font-size: 14px; color: #718096; margin-bottom: 24px;">
+                        Enter VPA and settlement details for <span id="currentBankNameRepeat">-</span> UPI terminal
+                    </p>
+
+                    <div class="alert alert-warning">
+                        <span class="alert-icon">⚠️</span>
+                        <div class="alert-content">
+                            <div class="alert-title">Bank-Specific Requirements</div>
+                            <span id="bankRequirementNote">-</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">VPA (UPI ID) <span class="required">*</span></label>
+                        <div style="position: relative;">
+                            <input type="text" class="form-input" id="vpaInput" placeholder="abcmf.sebi@validhdfc" oninput="validateCurrentBankVPA()" />
+                            <span id="vpaValidationIcon" class="validation-icon"></span>
+                        </div>
+                        <div class="helper-text" id="vpaHelperText">Must end with @validhdfc</div>
+                        <div class="error-text" id="vpaError">Invalid VPA format for selected bank</div>
+                    </div>
+
+                    <div id="bankDetected" class="alert alert-success hidden">
+                        <span class="alert-icon">✓</span>
+                        <div class="alert-content">
+                            VPA format validated for <span id="detectedBankName">-</span> Bank
+                        </div>
+                    </div>
+
+                    <div id="iciciFields" class="hidden">
+                        <div class="form-group">
+                            <label class="form-label">ICICI Merchant ID (MID) <span class="required">*</span></label>
+                            <input type="text" class="form-input" id="iciciMidInput" placeholder="ICICI_MID_123456" oninput="validateForm()" />
+                            <div class="helper-text">Required for ICICI UPI transactions</div>
+                        </div>
+                    </div>
+
+                    <div id="standardFields">
+                        <div class="form-group">
+                            <label class="form-label">Settlement Account Number <span class="required" id="accountRequired">*</span></label>
+                            <div style="position: relative;">
+                                <input type="text" class="form-input" id="accountInput" placeholder="50100123456789" oninput="validateAccount()" />
+                                <span id="accountValidationIcon" class="validation-icon"></span>
+                            </div>
+                            <div class="helper-text" id="accountHelper">Account for fund settlement (9-18 digits)</div>
+                            <div class="error-text" id="accountError">Account number must be 9-18 digits</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">IFSC Code <span class="required">*</span></label>
+                            <div style="position: relative;">
+                                <input type="text" class="form-input" id="ifscInput" placeholder="HDFC0001234" maxlength="11" oninput="validateIFSC()" />
+                                <span id="ifscValidationIcon" class="validation-icon"></span>
+                            </div>
+                            <div class="helper-text" id="ifscHelper">11-character IFSC code</div>
+                            <div class="error-text" id="ifscError">IFSC must belong to detected bank</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Settlement Type</label>
+                        <div class="radio-group">
+                            <div class="radio-option selected" onclick="selectSettlementType('DS')">
+                                <input type="radio" name="settlementType" value="DS" id="settlementDS" checked />
+                                <div class="radio-content">
+                                    <div class="radio-label">Direct Settlement (DS Terminal)</div>
+                                    <div class="radio-description">Funds settle directly to merchant account</div>
+                                </div>
+                            </div>
+                            <div class="radio-option" onclick="selectSettlementType('NonDS')">
+                                <input type="radio" name="settlementType" value="NonDS" id="settlementNonDS" />
+                                <div class="radio-content">
+                                    <div class="radio-label">Non-DS Settlement</div>
+                                    <div class="radio-description">Funds routed through Razorpay</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; display: flex; gap: 12px;">
+                        <button class="btn btn-secondary" onclick="goToPreviousBank()">← Back</button>
+                        <button class="btn btn-primary" id="vpaDetailsNext" disabled onclick="saveCurrentBankAndContinue()">
+                            <span id="nextBankBtnText">Continue to Next Bank →</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 5: Review -->
+            <div id="screen5" class="screen">
+                <button class="btn btn-secondary mb-3" onclick="goToScreen(4)">← Back</button>
+
+                <div class="progress-steps">
+                    <div class="progress-step completed">
+                        <div class="progress-circle">✓</div>
+                        <div class="progress-label">Search</div>
+                    </div>
+                    <div class="progress-step completed">
+                        <div class="progress-circle">✓</div>
+                        <div class="progress-label">Terminal Type</div>
+                    </div>
+                    <div class="progress-step completed">
+                        <div class="progress-circle">✓</div>
+                        <div class="progress-label">VPA Details</div>
+                    </div>
+                    <div class="progress-step active">
+                        <div class="progress-circle">4</div>
+                        <div class="progress-label">Review</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-circle">5</div>
+                        <div class="progress-label">Submit</div>
+                    </div>
+                </div>
+
+                <div style="background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <h2 style="font-size: 18px; font-weight: 700; color: #2d3748; margin-bottom: 8px;">
+                        Review IIR Details
+                    </h2>
+                    <p style="font-size: 14px; color: #718096; margin-bottom: 24px;">
+                        Verify all information before submitting for QC review
+                    </p>
+
+                    <div class="summary-card">
+                        <div class="summary-section-title">Merchant Information</div>
+                        <div class="summary-row">
+                            <div class="summary-label">Merchant</div>
+                            <div class="summary-value">ABC Mutual Fund (M12345)</div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="summary-label">SEBI Reg#</div>
+                            <div class="summary-value">INZ000123456</div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="summary-label">Template</div>
+                            <div class="summary-value">OC217</div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-section-title">Terminal Configuration</div>
+                        <div class="summary-row">
+                            <div class="summary-label">Terminal Type</div>
+                            <div class="summary-value" id="reviewTerminalType">-</div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="summary-label">VPA</div>
+                            <div class="summary-value" id="reviewVPA">-</div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="summary-label">Bank</div>
+                            <div class="summary-value" id="reviewBank">-</div>
+                        </div>
+                        <div class="summary-row" id="reviewAccountRow">
+                            <div class="summary-label">Settlement Account</div>
+                            <div class="summary-value" id="reviewAccount">-</div>
+                        </div>
+                        <div class="summary-row" id="reviewIFSCRow">
+                            <div class="summary-label">IFSC Code</div>
+                            <div class="summary-value" id="reviewIFSC">-</div>
+                        </div>
+                        <div class="summary-row hidden" id="reviewMIDRow">
+                            <div class="summary-label">ICICI MID</div>
+                            <div class="summary-value" id="reviewMID">-</div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="summary-label">Settlement Type</div>
+                            <div class="summary-value" id="reviewSettlementType">DS Terminal</div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-section-title">IIR Configuration</div>
+                        <div class="summary-row">
+                            <div class="summary-label">IIR to be Raised</div>
+                            <div class="summary-value" id="reviewIIR" style="color: #48bb78;">-</div>
+                        </div>
+                        <div class="summary-row">
+                            <div class="summary-label">Excluded IIRs</div>
+                            <div class="summary-value" id="reviewExcludedIIRs" style="color: #e53e3e;">-</div>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="confirmAccuracy" onchange="toggleSubmitBtn()" />
+                        <label for="confirmAccuracy" class="checkbox-label">I confirm all details are accurate and ready for QC review</label>
+                    </div>
+
+                    <div style="margin-top: 24px; display: flex; gap: 12px;">
+                        <button class="btn btn-secondary" onclick="goToScreen(4)">← Back</button>
+                        <button class="btn btn-primary" id="submitForQCBtn" disabled onclick="submitForQC()">Submit for QC Review</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 6: QC Review -->
+            <div id="screen6" class="screen">
+                <button class="btn btn-secondary mb-3" onclick="goToScreen(1)">← Back to Queue</button>
+
+                <div style="background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <h2 style="font-size: 18px; font-weight: 700; color: #2d3748; margin-bottom: 8px;">
+                        QC Review - IIR_OC217_001
+                    </h2>
+                    <p style="font-size: 14px; color: #718096; margin-bottom: 24px;">
+                        Review and approve SEBI-compliant terminal procurement request
+                    </p>
+
+                    <div class="alert alert-info">
+                        <span class="alert-icon">ℹ️</span>
+                        <div class="alert-content">
+                            Created by: bankingops_agent_1 | Created: 2026-03-09 10:30 IST | Priority: High
+                        </div>
+                    </div>
+
+                    <div class="merchant-card">
+                        <div class="merchant-header">
+                            <div>
+                                <div class="merchant-name">ABC Mutual Fund</div>
+                                <div class="merchant-id">M12345</div>
+                            </div>
+                            <div>
+                                <span class="badge badge-sebi">OC217</span>
+                                <span class="badge badge-pending">Pending QC</span>
+                            </div>
+                        </div>
+                        <div class="merchant-details">
+                            <div class="detail-item">
+                                <div class="detail-label">VPA</div>
+                                <div class="detail-value" id="qcVPA">-</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Bank</div>
+                                <div class="detail-value" id="qcBank">-</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Settlement</div>
+                                <div class="detail-value">DS Terminal</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 16px; font-weight: 700; color: #2d3748; margin-bottom: 14px;">SOP Checklist</h3>
+                    <div class="qc-checklist">
+                        <div class="checklist-item">
+                            <input type="checkbox" id="qc1" />
+                            <div class="checklist-content">
+                                <div class="checklist-title">SEBI registration verified on portal</div>
+                                <div class="checklist-meta">Verify entity name and active status on https://si.sebi.gov.in</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="qc2" />
+                            <div class="checklist-content">
+                                <div class="checklist-title">VPA ownership verified</div>
+                                <div class="checklist-meta">Confirm VPA belongs to merchant via SEBI portal</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="qc3" />
+                            <div class="checklist-content">
+                                <div class="checklist-title">Settlement account ownership verified</div>
+                                <div class="checklist-meta">Verify account via bank statement/cancelled cheque</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="qc4" />
+                            <div class="checklist-content">
+                                <div class="checklist-title">IFSC belongs to detected bank</div>
+                                <div class="checklist-meta">Auto-validated ✅ IFSC matches bank from VPA</div>
+                            </div>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="qc5" />
+                            <div class="checklist-content">
+                                <div class="checklist-title">MCC 6211 terminal config confirmed</div>
+                                <div class="checklist-meta">Verify configuration supports SEBI requirements</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">QC Notes</label>
+                        <textarea class="form-textarea" id="qcNotes" rows="3" placeholder="Add QC review notes...">All verifications complete. Ready for bank submission.</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">QC Decision <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-option" onclick="selectQCDecision('approve')">
+                                <input type="radio" name="qcDecision" value="approve" id="qcApprove" />
+                                <div class="radio-content">
+                                    <div class="radio-label">✓ Approve & Submit to Bank</div>
+                                    <div class="radio-description">All checks passed</div>
+                                </div>
+                            </div>
+                            <div class="radio-option" onclick="selectQCDecision('changes')">
+                                <input type="radio" name="qcDecision" value="changes" id="qcChanges" />
+                                <div class="radio-content">
+                                    <div class="radio-label">⚠️ Request Changes</div>
+                                    <div class="radio-description">Missing information or corrections needed</div>
+                                </div>
+                            </div>
+                            <div class="radio-option" onclick="selectQCDecision('reject')">
+                                <input type="radio" name="qcDecision" value="reject" id="qcReject" />
+                                <div class="radio-content">
+                                    <div class="radio-label">✗ Reject</div>
+                                    <div class="radio-description">Cannot proceed with this request</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 24px; display: flex; gap: 12px;">
+                        <button class="btn btn-secondary" onclick="goToScreen(1)">← Back to Queue</button>
+                        <button class="btn btn-primary" id="qcSubmitBtn" disabled onclick="submitQCDecision()">Submit Decision</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 7: Success -->
+            <div id="screen7" class="screen">
+                <div style="background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div class="success-container">
+                        <div class="success-icon">✅</div>
+                        <h1 class="success-title">IIR Approved - Ready for Bank Submission</h1>
+                        <p class="success-description">
+                            IIR_OC217_001 has been approved and submitted to <strong id="successBank">-</strong>.<br/>
+                            The merchant will be notified once the terminal is activated.
+                        </p>
+
+                        <div class="summary-card" style="max-width: 500px; margin: 0 auto;">
+                            <div class="summary-row">
+                                <div class="summary-label">IIR ID</div>
+                                <div class="summary-value" id="successIIR">-</div>
+                            </div>
+                            <div class="summary-row">
+                                <div class="summary-label">Status</div>
+                                <div class="summary-value" style="color: #48bb78;">Submitted to Bank</div>
+                            </div>
+                            <div class="summary-row">
+                                <div class="summary-label">Submitted</div>
+                                <div class="summary-value">2026-03-09 11:00 IST</div>
+                            </div>
+                            <div class="summary-row">
+                                <div class="summary-label">Expected TAT</div>
+                                <div class="summary-value">2-7 business days</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center;">
+                            <button class="btn btn-secondary" onclick="trackBankStatus()">Track Bank Status</button>
+                            <button class="btn btn-primary" onclick="goToScreen(1)">← Back to Dashboard</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Instrument Request Modal -->
+    <div class="modal-overlay" id="instrumentRequestModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">New Instrument Request</div>
+                <button class="modal-close" onclick="closeInstrumentRequestModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Merchant ID <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="modalMerchantId" placeholder="e.g., M12345" oninput="validateModalForm()" />
+                    <div class="helper-text">Separate multiple merchant IDs with commas for batch request</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Payment Method <span class="required">*</span></label>
+                    <select class="form-select" id="modalPaymentMethod" onchange="validateModalForm()">
+                        <option value="">Select Method</option>
+                        <option value="upi">UPI</option>
+                        <option value="card">Card</option>
+                        <option value="netbanking">Netbanking</option>
+                        <option value="wallet">Wallet</option>
+                        <option value="emandate">E-Mandate</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Feature <span class="required">*</span></label>
+                    <select class="form-select" id="modalFeature" onchange="handleFeatureChange()">
+                        <option value="">Select Feature</option>
+                        <option value="OC217">OC217 (SEBI-Compliant UPI)</option>
+                        <option value="TPV">TPV (Third Party Verification)</option>
+                        <option value="Recurring">Recurring Payments</option>
+                        <option value="International">International Payments</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <div class="helper-text">Select OC217 for SEBI-regulated merchants requiring validated UPI IDs</div>
+                </div>
+
+                <div id="oc217BankOptions" class="hidden">
+                    <div class="form-group">
+                        <label class="form-label">Select Bank for OC217 <span class="required">*</span></label>
+                        <select class="form-select" id="modalBank" onchange="handleBankChange()">
+                            <option value="">Select Bank</option>
+                            <option value="HDFC">HDFC Bank - Supports @validhdfc handles</option>
+                            <option value="ICICI">ICICI Bank - Supports @validicici handles (requires MID)</option>
+                            <option value="Axis">Axis Bank - Supports @validaxis handles</option>
+                        </select>
+                        <div class="helper-text">Only banks supporting SEBI-validated VPAs (@valid handles)</div>
+                    </div>
+                </div>
+
+                <!-- Bank-Specific Fields (shown when bank is selected) -->
+                <div id="bankSpecificFields" class="hidden">
+                    <div class="alert alert-warning" style="margin-bottom: 16px;">
+                        <span class="alert-icon">⚠️</span>
+                        <div class="alert-content">
+                            <div class="alert-title">Bank-Specific Requirements</div>
+                            <span id="modalBankRequirementNote">-</span>
+                        </div>
+                    </div>
+
+                    <!-- VPA Field -->
+                    <div class="form-group">
+                        <label class="form-label">VPA (Virtual Payment Address) <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="modalVpaInput" placeholder="abcmf.sebi@validhdfc" oninput="validateModalBankForm()" />
+                        <div class="helper-text" id="modalVpaHelperText">Must end with @validhdfc</div>
+                    </div>
+
+                    <!-- ICICI MID Field (only for ICICI) -->
+                    <div id="modalIciciFields" class="hidden">
+                        <div class="form-group">
+                            <label class="form-label">ICICI Merchant ID (MID) <span class="required">*</span></label>
+                            <input type="text" class="form-input" id="modalIciciMidInput" placeholder="e.g., 401234567890123" oninput="validateModalBankForm()" />
+                            <div class="helper-text">15-digit ICICI Bank merchant identifier</div>
+                        </div>
+                    </div>
+
+                    <!-- Settlement Account -->
+                    <div class="form-group">
+                        <label class="form-label">Settlement Account Number <span class="required" id="modalAccountRequired">*</span></label>
+                        <input type="text" class="form-input" id="modalAccountInput" placeholder="9-18 digit account number" oninput="validateModalBankForm()" />
+                        <div class="helper-text" id="modalAccountHelper">Account for fund settlement (9-18 digits)</div>
+                    </div>
+
+                    <!-- IFSC Code -->
+                    <div class="form-group">
+                        <label class="form-label">IFSC Code <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="modalIfscInput" placeholder="e.g., HDFC0001234" oninput="validateModalBankForm()" maxlength="11" style="text-transform: uppercase;" />
+                        <div class="helper-text" id="modalIfscHelper">11-character code (must start with HDFC)</div>
+                    </div>
+                </div>
+
+                <div id="otherFeatureNote" class="hidden">
+                    <div class="alert alert-info">
+                        <span class="alert-icon">ℹ️</span>
+                        <div class="alert-content">
+                            Standard instrument request flow. Click "Add Request" to proceed.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeInstrumentRequestModal()">Cancel</button>
+                <button class="btn btn-primary" id="modalContinueBtn" disabled onclick="handleModalContinue()">Add Request</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let formData = {
+            merchantId: 'M12345',
+            merchantName: 'ABC Mutual Fund',
+            sebiReg: 'INZ000123456',
+            selectedBanks: [], // Banks selected in modal for OC217
+            terminalType: '',
+            currentBankIndex: 0, // Track which bank we're configuring
+            bankConfigurations: {}, // Store config for each bank
+            settlementType: 'DS',
+            proofFiles: [],
+            internalNotes: ''
+        };
+
+        // Navigation
+        function goToScreen(screenNum) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(`screen${screenNum}`).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // Modal Functions
+        function openInstrumentRequestModal() {
+            document.getElementById('instrumentRequestModal').classList.add('active');
+            resetModalForm();
+        }
+
+        function closeInstrumentRequestModal() {
+            document.getElementById('instrumentRequestModal').classList.remove('active');
+            resetModalForm();
+        }
+
+        function resetModalForm() {
+            document.getElementById('modalMerchantId').value = '';
+            document.getElementById('modalPaymentMethod').value = '';
+            document.getElementById('modalFeature').value = '';
+            document.getElementById('modalBank').value = '';
+            document.getElementById('oc217BankOptions').classList.add('hidden');
+            document.getElementById('bankSpecificFields').classList.add('hidden');
+            document.getElementById('otherFeatureNote').classList.add('hidden');
+            document.getElementById('modalVpaInput').value = '';
+            document.getElementById('modalAccountInput').value = '';
+            document.getElementById('modalIfscInput').value = '';
+            document.getElementById('modalIciciMidInput').value = '';
+            document.getElementById('modalContinueBtn').disabled = true;
+        }
+
+        function handleFeatureChange() {
+            const feature = document.getElementById('modalFeature').value;
+            const bankOptions = document.getElementById('oc217BankOptions');
+            const bankSpecificFields = document.getElementById('bankSpecificFields');
+            const otherNote = document.getElementById('otherFeatureNote');
+
+            // Reset bank selection and fields when feature changes
+            document.getElementById('modalBank').value = '';
+            bankSpecificFields.classList.add('hidden');
+
+            if (feature === 'OC217') {
+                bankOptions.classList.remove('hidden');
+                otherNote.classList.add('hidden');
+            } else if (feature) {
+                bankOptions.classList.add('hidden');
+                otherNote.classList.remove('hidden');
+            } else {
+                bankOptions.classList.add('hidden');
+                otherNote.classList.add('hidden');
+            }
+
+            validateModalForm();
+        }
+
+        function handleBankChange() {
+            const bank = document.getElementById('modalBank').value;
+            const bankSpecificFields = document.getElementById('bankSpecificFields');
+
+            if (!bank) {
+                bankSpecificFields.classList.add('hidden');
+                validateModalForm();
+                return;
+            }
+
+            // Show bank-specific fields
+            bankSpecificFields.classList.remove('hidden');
+
+            // Update bank-specific UI elements
+            const handleMap = {
+                'HDFC': '@validhdfc',
+                'ICICI': '@validicici',
+                'Axis': '@validaxis'
+            };
+            const ifscPrefixMap = {
+                'HDFC': 'HDFC',
+                'ICICI': 'ICIC',
+                'Axis': 'UTIB'
+            };
+
+            const handle = handleMap[bank];
+            const ifscPrefix = ifscPrefixMap[bank];
+
+            // Update VPA field
+            document.getElementById('modalVpaInput').placeholder = `abcmf.sebi${handle}`;
+            document.getElementById('modalVpaHelperText').textContent = `Must end with ${handle}`;
+
+            // Update IFSC field
+            document.getElementById('modalIfscInput').placeholder = `e.g., ${ifscPrefix}0001234`;
+            document.getElementById('modalIfscHelper').textContent = `11-character code (must start with ${ifscPrefix})`;
+
+            // Show/hide ICICI-specific fields
+            if (bank === 'ICICI') {
+                document.getElementById('modalBankRequirementNote').textContent = 'ICICI Bank requires Merchant ID (MID). Settlement account is optional.';
+                document.getElementById('modalIciciFields').classList.remove('hidden');
+                document.getElementById('modalAccountRequired').textContent = '';
+                document.getElementById('modalAccountHelper').textContent = 'Optional for ICICI VPAs';
+            } else {
+                document.getElementById('modalBankRequirementNote').textContent = `${bank} Bank requires settlement account number and IFSC code.`;
+                document.getElementById('modalIciciFields').classList.add('hidden');
+                document.getElementById('modalAccountRequired').textContent = '*';
+                document.getElementById('modalAccountHelper').textContent = 'Account for fund settlement (9-18 digits)';
+            }
+
+            // Clear input fields when bank changes
+            document.getElementById('modalVpaInput').value = '';
+            document.getElementById('modalAccountInput').value = '';
+            document.getElementById('modalIfscInput').value = '';
+            document.getElementById('modalIciciMidInput').value = '';
+
+            validateModalForm();
+        }
+
+        function validateModalBankForm() {
+            // This function is called when bank-specific fields are edited
+            // It triggers the main validation
+            validateModalForm();
+        }
+
+        function validateModalForm() {
+            const merchantId = document.getElementById('modalMerchantId').value.trim();
+            const paymentMethod = document.getElementById('modalPaymentMethod').value;
+            const feature = document.getElementById('modalFeature').value;
+
+            let valid = merchantId && paymentMethod && feature;
+
+            // If OC217 is selected, validate bank and bank-specific fields
+            if (feature === 'OC217') {
+                const bank = document.getElementById('modalBank').value;
+                valid = valid && bank;
+
+                // If bank is selected, validate bank-specific fields
+                if (bank) {
+                    const vpa = document.getElementById('modalVpaInput').value.trim();
+                    const account = document.getElementById('modalAccountInput').value.trim();
+                    const ifsc = document.getElementById('modalIfscInput').value.trim();
+
+                    // VPA and IFSC are always required
+                    valid = valid && vpa && ifsc;
+
+                    // For ICICI, MID is required, account is optional
+                    if (bank === 'ICICI') {
+                        const iciciMid = document.getElementById('modalIciciMidInput').value.trim();
+                        valid = valid && iciciMid;
+                    } else {
+                        // For other banks, account is required
+                        valid = valid && account;
+                    }
+
+                    // Validate VPA format
+                    const handleMap = {
+                        'HDFC': '@validhdfc',
+                        'ICICI': '@validicici',
+                        'Axis': '@validaxis'
+                    };
+                    if (vpa && !vpa.toLowerCase().includes(handleMap[bank])) {
+                        valid = false;
+                    }
+
+                    // Validate IFSC format
+                    const ifscPrefixMap = {
+                        'HDFC': 'HDFC',
+                        'ICICI': 'ICIC',
+                        'Axis': 'UTIB'
+                    };
+                    if (ifsc && !ifsc.toUpperCase().startsWith(ifscPrefixMap[bank])) {
+                        valid = false;
+                    }
+                }
+            }
+
+            document.getElementById('modalContinueBtn').disabled = !valid;
+        }
+
+        function handleModalContinue() {
+            const feature = document.getElementById('modalFeature').value;
+            const merchantId = document.getElementById('modalMerchantId').value.trim();
+
+            if (feature === 'OC217') {
+                // Store merchant ID and proceed to OC217 flow
+                formData.merchantId = merchantId.split(',')[0].trim(); // Take first ID if multiple
+
+                // Get selected bank
+                const selectedBank = document.getElementById('modalBank').value;
+                formData.selectedBanks = [selectedBank];
+
+                // Store bank configuration from modal
+                formData.bankConfigurations = {};
+                formData.bankConfigurations[selectedBank] = {
+                    vpa: document.getElementById('modalVpaInput').value.trim(),
+                    settlementAccount: document.getElementById('modalAccountInput').value.trim(),
+                    ifsc: document.getElementById('modalIfscInput').value.trim(),
+                    iciciMid: selectedBank === 'ICICI' ? document.getElementById('modalIciciMidInput').value.trim() : '',
+                    settlementType: 'DS' // Default to Direct Settlement
+                };
+
+                closeInstrumentRequestModal();
+
+                // Pre-populate merchant search with the entered merchant ID
+                document.getElementById('merchantSearch').value = formData.merchantId;
+
+                // Show selected bank
+                document.getElementById('selectedBanksList').textContent = selectedBank;
+
+                // Trigger search to show merchant details
+                setTimeout(() => {
+                    document.getElementById('searchResults').classList.remove('hidden');
+                }, 100);
+
+                goToScreen(2);
+            } else {
+                // For other features, show standard batch request flow (not implemented in this prototype)
+                alert('Standard instrument request flow for ' + feature + ' feature.\n\nThis would add the request to the batch table below.\n\nOC217 flow proceeds to dedicated configuration screens.');
+                closeInstrumentRequestModal();
+            }
+        }
+
+        // Merchant Search
+        document.getElementById('merchantSearch').addEventListener('input', function(e) {
+            if (e.target.value.length > 2) {
+                setTimeout(() => {
+                    document.getElementById('searchResults').classList.remove('hidden');
+                }, 500);
+            } else {
+                document.getElementById('searchResults').classList.add('hidden');
+            }
+        });
+
+        // Terminal Type Selection
+        function selectTerminalType(type) {
+            formData.terminalType = type;
+            document.querySelectorAll('.radio-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            document.getElementById(type === 'one_time' ? 'oneTime' : type === 'autopay' ? 'autopay' : 'both').checked = true;
+            document.getElementById('terminalTypeNext').disabled = false;
+        }
+
+        // Bank Configuration Flow
+        function startBankConfiguration() {
+            // Bank configuration was already collected in the modal
+            // Skip directly to review screen
+            populateReview();
+            goToScreen(5);
+        }
+
+        function loadBankConfigScreen() {
+            const currentBank = formData.selectedBanks[formData.currentBankIndex];
+            const totalBanks = formData.selectedBanks.length;
+            const isLastBank = formData.currentBankIndex === totalBanks - 1;
+
+            // Update header
+            document.getElementById('currentBankName').textContent = currentBank;
+            document.getElementById('currentBankNameRepeat').textContent = currentBank;
+            document.getElementById('bankProgress').textContent = `Bank ${formData.currentBankIndex + 1} of ${totalBanks}`;
+
+            // Update VPA placeholder and helper text
+            const handleMap = {
+                'HDFC': '@validhdfc',
+                'ICICI': '@validicici',
+                'Axis': '@validaxis'
+            };
+            const handle = handleMap[currentBank];
+            document.getElementById('vpaInput').placeholder = `abcmf.sebi${handle}`;
+            document.getElementById('vpaHelperText').textContent = `Must end with ${handle}`;
+
+            // Update bank requirement note
+            if (currentBank === 'ICICI') {
+                document.getElementById('bankRequirementNote').textContent = 'ICICI Bank requires Merchant ID (MID). Settlement account is optional.';
+                document.getElementById('iciciFields').classList.remove('hidden');
+                document.getElementById('accountRequired').textContent = '';
+                document.getElementById('accountHelper').textContent = 'Optional for ICICI VPAs';
+            } else {
+                document.getElementById('bankRequirementNote').textContent = `${currentBank} Bank requires settlement account number and IFSC code.`;
+                document.getElementById('iciciFields').classList.add('hidden');
+                document.getElementById('accountRequired').textContent = '*';
+                document.getElementById('accountHelper').textContent = 'Account for fund settlement (9-18 digits)';
+            }
+
+            // Update button text
+            if (isLastBank) {
+                document.getElementById('nextBankBtnText').textContent = 'Continue to Review →';
+            } else {
+                const nextBank = formData.selectedBanks[formData.currentBankIndex + 1];
+                document.getElementById('nextBankBtnText').textContent = `Continue to ${nextBank} Bank →`;
+            }
+
+            // Load saved data if returning to this bank
+            if (formData.bankConfigurations[currentBank]) {
+                const savedConfig = formData.bankConfigurations[currentBank];
+                document.getElementById('vpaInput').value = savedConfig.vpa || '';
+                document.getElementById('accountInput').value = savedConfig.settlementAccount || '';
+                document.getElementById('ifscInput').value = savedConfig.ifsc || '';
+                if (currentBank === 'ICICI') {
+                    document.getElementById('iciciMidInput').value = savedConfig.iciciMid || '';
+                }
+                validateCurrentBankForm();
+            } else {
+                // Clear form
+                document.getElementById('vpaInput').value = '';
+                document.getElementById('accountInput').value = '';
+                document.getElementById('ifscInput').value = '';
+                document.getElementById('iciciMidInput').value = '';
+                clearValidationStates();
+            }
+        }
+
+        function clearValidationStates() {
+            document.getElementById('vpaInput').closest('.form-group').classList.remove('error', 'success');
+            document.getElementById('vpaValidationIcon').textContent = '';
+            document.getElementById('bankDetected').classList.add('hidden');
+
+            const accountInput = document.getElementById('accountInput');
+            if (accountInput) {
+                accountInput.closest('.form-group').classList.remove('error', 'success');
+                document.getElementById('accountValidationIcon').textContent = '';
+            }
+
+            const ifscInput = document.getElementById('ifscInput');
+            if (ifscInput) {
+                ifscInput.closest('.form-group').classList.remove('error', 'success');
+                document.getElementById('ifscValidationIcon').textContent = '';
+            }
+
+            document.getElementById('vpaDetailsNext').disabled = true;
+        }
+
+        function saveCurrentBankAndContinue() {
+            const currentBank = formData.selectedBanks[formData.currentBankIndex];
+            const totalBanks = formData.selectedBanks.length;
+
+            // Save current bank configuration
+            formData.bankConfigurations[currentBank] = {
+                vpa: document.getElementById('vpaInput').value.trim(),
+                settlementAccount: document.getElementById('accountInput').value.trim(),
+                ifsc: document.getElementById('ifscInput').value.trim(),
+                iciciMid: currentBank === 'ICICI' ? document.getElementById('iciciMidInput').value.trim() : '',
+                settlementType: formData.settlementType
+            };
+
+            // Move to next bank or review
+            if (formData.currentBankIndex < totalBanks - 1) {
+                formData.currentBankIndex++;
+                loadBankConfigScreen();
+            } else {
+                // All banks configured, go to review
+                populateReview();
+                goToScreen(5);
+            }
+        }
+
+        function goToPreviousBank() {
+            if (formData.currentBankIndex > 0) {
+                formData.currentBankIndex--;
+                loadBankConfigScreen();
+            } else {
+                // Go back to terminal type selection
+                goToScreen(3);
+            }
+        }
+
+        // VPA Validation for Current Bank
+        function validateCurrentBankVPA() {
+            const vpa = document.getElementById('vpaInput').value.toLowerCase().trim();
+            const vpaGroup = document.getElementById('vpaInput').closest('.form-group');
+            const vpaIcon = document.getElementById('vpaValidationIcon');
+            const bankDetected = document.getElementById('bankDetected');
+            const currentBank = formData.selectedBanks[formData.currentBankIndex];
+
+            if (vpa.length === 0) {
+                vpaGroup.classList.remove('error', 'success');
+                vpaIcon.textContent = '';
+                bankDetected.classList.add('hidden');
+                validateCurrentBankForm();
+                return;
+            }
+
+            // Check if VPA matches the current bank's handle
+            const handleMap = {
+                'HDFC': '@validhdfc',
+                'ICICI': '@validicici',
+                'Axis': '@validaxis'
+            };
+            const expectedHandle = handleMap[currentBank];
+
+            if (vpa.includes(expectedHandle)) {
+                vpaGroup.classList.remove('error');
+                vpaGroup.classList.add('success');
+                vpaIcon.textContent = '✓';
+                vpaIcon.style.color = '#48bb78';
+
+                bankDetected.classList.remove('hidden');
+                document.getElementById('detectedBankName').textContent = currentBank;
+            } else {
+                vpaGroup.classList.add('error');
+                vpaGroup.classList.remove('success');
+                vpaIcon.textContent = '✗';
+                vpaIcon.style.color = '#e53e3e';
+                bankDetected.classList.add('hidden');
+            }
+
+            validateCurrentBankForm();
+        }
+
+        function validateAccount() {
+            const account = document.getElementById('accountInput').value.trim();
+            const accountGroup = document.getElementById('accountInput').closest('.form-group');
+            const accountIcon = document.getElementById('accountValidationIcon');
+
+            if (account.length === 0) {
+                accountGroup.classList.remove('error', 'success');
+                accountIcon.textContent = '';
+                validateCurrentBankForm();
+                return;
+            }
+
+            if (account.length >= 9 && account.length <= 18 && /^\d+$/.test(account)) {
+                accountGroup.classList.remove('error');
+                accountGroup.classList.add('success');
+                accountIcon.textContent = '✓';
+                accountIcon.style.color = '#48bb78';
+            } else {
+                accountGroup.classList.add('error');
+                accountGroup.classList.remove('success');
+                accountIcon.textContent = '✗';
+                accountIcon.style.color = '#e53e3e';
+            }
+
+            validateCurrentBankForm();
+        }
+
+        function validateIFSC() {
+            const ifsc = document.getElementById('ifscInput').value.trim().toUpperCase();
+            const ifscGroup = document.getElementById('ifscInput').closest('.form-group');
+            const ifscIcon = document.getElementById('ifscValidationIcon');
+            const currentBank = formData.selectedBanks[formData.currentBankIndex];
+
+            document.getElementById('ifscInput').value = ifsc;
+
+            if (ifsc.length === 0) {
+                ifscGroup.classList.remove('error', 'success');
+                ifscIcon.textContent = '';
+                validateCurrentBankForm();
+                return;
+            }
+
+            let valid = ifsc.length === 11 && /^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc);
+
+            if (valid && currentBank) {
+                const bankPrefixes = {
+                    'HDFC': 'HDFC',
+                    'ICICI': 'ICIC',
+                    'Axis': 'UTIB'
+                };
+                const expectedPrefix = bankPrefixes[currentBank];
+                if (!ifsc.startsWith(expectedPrefix)) {
+                    valid = false;
+                }
+            }
+
+            if (valid) {
+                ifscGroup.classList.remove('error');
+                ifscGroup.classList.add('success');
+                ifscIcon.textContent = '✓';
+                ifscIcon.style.color = '#48bb78';
+            } else {
+                ifscGroup.classList.add('error');
+                ifscGroup.classList.remove('success');
+                ifscIcon.textContent = '✗';
+                ifscIcon.style.color = '#e53e3e';
+            }
+
+            validateCurrentBankForm();
+        }
+
+        function validateCurrentBankForm() {
+            const currentBank = formData.selectedBanks[formData.currentBankIndex];
+            const vpa = document.getElementById('vpaInput').value.trim();
+            const account = document.getElementById('accountInput').value.trim();
+            const ifsc = document.getElementById('ifscInput').value.trim();
+
+            // VPA validation
+            const handleMap = {
+                'HDFC': '@validhdfc',
+                'ICICI': '@validicici',
+                'Axis': '@validaxis'
+            };
+            const vpaValid = vpa.toLowerCase().includes(handleMap[currentBank]);
+
+            // IFSC validation
+            const ifscValid = ifsc.length === 11;
+
+            let allValid = false;
+
+            if (currentBank === 'ICICI') {
+                const mid = document.getElementById('iciciMidInput').value.trim();
+                const iciciMidValid = mid.length >= 5;
+                allValid = vpaValid && ifscValid && iciciMidValid;
+            } else {
+                const accountValid = account.length >= 9 && account.length <= 18;
+                allValid = vpaValid && accountValid && ifscValid;
+            }
+
+            document.getElementById('vpaDetailsNext').disabled = !allValid;
+        }
+
+        function selectSettlementType(type) {
+            formData.settlementType = type;
+            document.querySelectorAll('input[name="settlementType"]').forEach(radio => {
+                radio.parentElement.parentElement.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            document.getElementById(type === 'DS' ? 'settlementDS' : 'settlementNonDS').checked = true;
+        }
+
+        // Review Screen
+        function populateReview() {
+            document.getElementById('reviewTerminalType').textContent =
+                formData.terminalType === 'one_time' ? 'UPI One-Time' :
+                formData.terminalType === 'autopay' ? 'UPI Autopay' : 'Both';
+
+            // For multi-bank configurations, show all banks
+            const configuredBanks = Object.keys(formData.bankConfigurations);
+            if (configuredBanks.length > 0) {
+                // Show first bank's details (backward compatibility with single bank view)
+                const firstBank = configuredBanks[0];
+                const firstConfig = formData.bankConfigurations[firstBank];
+
+                document.getElementById('reviewVPA').textContent = firstConfig.vpa;
+                document.getElementById('reviewBank').textContent = `${configuredBanks.length} Bank(s): ${configuredBanks.join(', ')}`;
+
+                // Show/hide fields based on bank type
+                if (firstBank === 'ICICI' && firstConfig.iciciMid) {
+                    // For ICICI, show MID
+                    document.getElementById('reviewMIDRow').classList.remove('hidden');
+                    document.getElementById('reviewMID').textContent = firstConfig.iciciMid;
+
+                    // Show account/IFSC if provided (they're optional for ICICI)
+                    if (firstConfig.settlementAccount) {
+                        document.getElementById('reviewAccountRow').classList.remove('hidden');
+                        document.getElementById('reviewAccount').textContent = firstConfig.settlementAccount;
+                    } else {
+                        document.getElementById('reviewAccountRow').classList.add('hidden');
+                    }
+
+                    if (firstConfig.ifsc) {
+                        document.getElementById('reviewIFSCRow').classList.remove('hidden');
+                        document.getElementById('reviewIFSC').textContent = firstConfig.ifsc;
+                    } else {
+                        document.getElementById('reviewIFSCRow').classList.add('hidden');
+                    }
+                } else {
+                    // For other banks, show account and IFSC, hide MID
+                    document.getElementById('reviewAccountRow').classList.remove('hidden');
+                    document.getElementById('reviewIFSCRow').classList.remove('hidden');
+                    document.getElementById('reviewMIDRow').classList.add('hidden');
+                    document.getElementById('reviewAccount').textContent = firstConfig.settlementAccount;
+                    document.getElementById('reviewIFSC').textContent = firstConfig.ifsc;
+                }
+
+                // Show IIRs to be raised
+                const iirList = configuredBanks.map(bank => `✓ ${bank} UPI IIR`).join(', ');
+                document.getElementById('reviewIIR').textContent = iirList;
+
+                // Show excluded banks
+                const allBanks = ['HDFC', 'ICICI', 'Axis'];
+                const excludedBanks = allBanks.filter(b => !configuredBanks.includes(b));
+                if (excludedBanks.length > 0) {
+                    document.getElementById('reviewExcludedIIRs').textContent =
+                        `❌ ${excludedBanks.join(' UPI IIR, ')} UPI IIR`;
+                } else {
+                    document.getElementById('reviewExcludedIIRs').textContent = 'None - All banks configured';
+                }
+
+                document.getElementById('reviewSettlementType').textContent =
+                    formData.settlementType === 'DS' ? 'DS Terminal' : 'Non-DS Settlement';
+
+                // For QC screen, use first bank's VPA
+                document.getElementById('qcVPA').textContent = firstConfig.vpa;
+                document.getElementById('qcBank').textContent = configuredBanks.join(', ');
+            }
+        }
+
+        // Override screen 5 navigation
+        window.addEventListener('load', function() {
+            const screen5Trigger = document.querySelector('[onclick*="goToScreen(5)"]');
+            if (screen5Trigger) {
+                screen5Trigger.onclick = function() {
+                    populateReview();
+                    goToScreen(5);
+                };
+            }
+        });
+
+        function toggleSubmitBtn() {
+            const checked = document.getElementById('confirmAccuracy').checked;
+            document.getElementById('submitForQCBtn').disabled = !checked;
+        }
+
+        function submitForQC() {
+            alert('IIR submitted for QC review. QC Lead will be notified.');
+            goToScreen(6);
+        }
+
+        // QC Review
+        function selectQCDecision(decision) {
+            document.querySelectorAll('input[name="qcDecision"]').forEach(radio => {
+                radio.parentElement.parentElement.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            document.getElementById(
+                decision === 'approve' ? 'qcApprove' :
+                decision === 'changes' ? 'qcChanges' : 'qcReject'
+            ).checked = true;
+            document.getElementById('qcSubmitBtn').disabled = false;
+        }
+
+        function submitQCDecision() {
+            const decision = document.querySelector('input[name="qcDecision"]:checked').value;
+            if (decision === 'approve') {
+                populateSuccess();
+                goToScreen(7);
+            } else if (decision === 'changes') {
+                alert('Change request sent to BankingOps Agent.');
+                goToScreen(1);
+            } else {
+                alert('IIR rejected. Merchant and BankingOps Agent notified.');
+                goToScreen(1);
+            }
+        }
+
+        function populateSuccess() {
+            const configuredBanks = Object.keys(formData.bankConfigurations);
+            if (configuredBanks.length > 0) {
+                if (configuredBanks.length === 1) {
+                    document.getElementById('successBank').textContent = configuredBanks[0] + ' Bank';
+                    document.getElementById('successIIR').textContent = `IIR_${configuredBanks[0]}_UPI_001`;
+                } else {
+                    document.getElementById('successBank').textContent = configuredBanks.join(', ') + ' Banks';
+                    const iirIds = configuredBanks.map((bank, idx) => `IIR_${bank}_UPI_00${idx + 1}`).join(', ');
+                    document.getElementById('successIIR').textContent = iirIds;
+                }
+            }
+        }
+
+        function trackBankStatus() {
+            alert('Opening bank status tracker...');
+        }
+    </script>
+</body>
+</html>
