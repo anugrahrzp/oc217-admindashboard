@@ -1565,12 +1565,6 @@
                             <input type="text" class="form-input" id="modalIciciMidInput" placeholder="e.g., 401234567890123" oninput="validateModalBankForm()" />
                             <div class="helper-text">15-digit ICICI Bank merchant identifier</div>
                         </div>
-
-                        <div class="form-group">
-                            <label class="form-label">UTA Number (ICICI Access Number) <span class="required">*</span></label>
-                            <input type="text" class="form-input" id="modalIciciUtaInput" placeholder="e.g., UTA12345678" oninput="validateModalBankForm()" />
-                            <div class="helper-text">ICICI-specific UTA number for access</div>
-                        </div>
                     </div>
 
                     <!-- Settlement Account -->
@@ -1657,7 +1651,6 @@
             document.getElementById('modalAccountInput').value = '';
             document.getElementById('modalIfscInput').value = '';
             document.getElementById('modalIciciMidInput').value = '';
-            document.getElementById('modalIciciUtaInput').value = '';
             document.getElementById('modalUtnInput').value = '';
             document.getElementById('modalContinueBtn').disabled = true;
 
@@ -1756,7 +1749,7 @@
 
             // Show/hide ICICI-specific fields
             if (bank === 'ICICI') {
-                document.getElementById('modalBankRequirementNote').textContent = 'ICICI Bank requires Merchant ID (MID) and UTA Number. Settlement account is optional.';
+                document.getElementById('modalBankRequirementNote').textContent = 'ICICI Bank requires Merchant ID (MID). Settlement account is optional.';
                 document.getElementById('modalIciciFields').classList.remove('hidden');
                 document.getElementById('modalAccountRequired').textContent = '';
                 document.getElementById('modalAccountHelper').textContent = 'Optional for ICICI VPAs';
@@ -1772,7 +1765,6 @@
             document.getElementById('modalAccountInput').value = '';
             document.getElementById('modalIfscInput').value = '';
             document.getElementById('modalIciciMidInput').value = '';
-            document.getElementById('modalIciciUtaInput').value = '';
             document.getElementById('modalUtnInput').value = '';
 
             validateModalForm();
@@ -1805,11 +1797,10 @@
                     // VPA and IFSC are always required
                     valid = valid && vpa && ifsc;
 
-                    // For ICICI, MID and UTA are required, account is optional
+                    // For ICICI, MID is required, account is optional
                     if (bank === 'ICICI') {
                         const iciciMid = document.getElementById('modalIciciMidInput').value.trim();
-                        const iciciUta = document.getElementById('modalIciciUtaInput').value.trim();
-                        valid = valid && iciciMid && iciciUta;
+                        valid = valid && iciciMid;
                     } else {
                         // For other banks, account is required
                         valid = valid && account;
@@ -1864,7 +1855,6 @@
                     settlementAccount: document.getElementById('modalAccountInput').value.trim(),
                     ifsc: document.getElementById('modalIfscInput').value.trim(),
                     iciciMid: selectedBank === 'ICICI' ? document.getElementById('modalIciciMidInput').value.trim() : '',
-                    iciciUta: selectedBank === 'ICICI' ? document.getElementById('modalIciciUtaInput').value.trim() : '',
                     utn: document.getElementById('modalUtnInput').value.trim(),
                     settlementType: 'DS' // Default to Direct Settlement
                 };
