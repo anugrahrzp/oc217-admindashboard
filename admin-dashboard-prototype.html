@@ -1518,7 +1518,8 @@
                     <label class="form-label">Feature <span class="required">*</span></label>
                     <select class="form-select" id="modalFeature" onchange="handleFeatureChange()">
                         <option value="">Select Feature</option>
-                        <option value="OC217">OC217 (SEBI-Compliant UPI)</option>
+                        <option value="OC217_ONE_TIME">OC217 One Time (SEBI-Compliant UPI)</option>
+                        <option value="OC217_RECURRING">OC217 Recurring (SEBI-Compliant UPI Autopay)</option>
                         <option value="TPV">TPV (Third Party Verification)</option>
                         <option value="Recurring">Recurring Payments</option>
                         <option value="International">International Payments</option>
@@ -1579,6 +1580,13 @@
                         <input type="text" class="form-input" id="modalIfscInput" placeholder="e.g., HDFC0001234" oninput="validateModalBankForm()" maxlength="11" style="text-transform: uppercase;" />
                         <div class="helper-text" id="modalIfscHelper">11-character code (must start with HDFC)</div>
                     </div>
+
+                    <!-- UTN Number -->
+                    <div class="form-group">
+                        <label class="form-label">UTN Number (Unique Transaction Number)</label>
+                        <input type="text" class="form-input" id="modalUtnInput" placeholder="e.g., UTN12345678901234" oninput="validateModalBankForm()" />
+                        <div class="helper-text">Optional: Bank-specific unique transaction number for reference</div>
+                    </div>
                 </div>
 
                 <div id="otherFeatureNote" class="hidden">
@@ -1604,6 +1612,7 @@
             merchantName: 'ABC Mutual Fund',
             sebiReg: 'INZ000123456',
             selectedBanks: [], // Banks selected in modal for OC217
+            featureType: '', // OC217_ONE_TIME or OC217_RECURRING
             terminalType: '',
             currentBankIndex: 0, // Track which bank we're configuring
             bankConfigurations: {}, // Store config for each bank
@@ -1642,6 +1651,7 @@
             document.getElementById('modalAccountInput').value = '';
             document.getElementById('modalIfscInput').value = '';
             document.getElementById('modalIciciMidInput').value = '';
+            document.getElementById('modalUtnInput').value = '';
             document.getElementById('modalContinueBtn').disabled = true;
         }
 
@@ -1655,7 +1665,7 @@
             document.getElementById('modalBank').value = '';
             bankSpecificFields.classList.add('hidden');
 
-            if (feature === 'OC217') {
+            if (feature === 'OC217_ONE_TIME' || feature === 'OC217_RECURRING') {
                 bankOptions.classList.remove('hidden');
                 otherNote.classList.add('hidden');
             } else if (feature) {
@@ -1723,6 +1733,7 @@
             document.getElementById('modalAccountInput').value = '';
             document.getElementById('modalIfscInput').value = '';
             document.getElementById('modalIciciMidInput').value = '';
+            document.getElementById('modalUtnInput').value = '';
 
             validateModalForm();
         }
@@ -1741,7 +1752,7 @@
             let valid = merchantId && paymentMethod && feature;
 
             // If OC217 is selected, validate bank and bank-specific fields
-            if (feature === 'OC217') {
+            if (feature === 'OC217_ONE_TIME' || feature === 'OC217_RECURRING') {
                 const bank = document.getElementById('modalBank').value;
                 valid = valid && bank;
 
@@ -1792,9 +1803,10 @@
             const feature = document.getElementById('modalFeature').value;
             const merchantId = document.getElementById('modalMerchantId').value.trim();
 
-            if (feature === 'OC217') {
+            if (feature === 'OC217_ONE_TIME' || feature === 'OC217_RECURRING') {
                 // Store merchant ID and proceed to OC217 flow
                 formData.merchantId = merchantId.split(',')[0].trim(); // Take first ID if multiple
+                formData.featureType = feature; // Store whether it's One Time or Recurring
 
                 // Get selected bank
                 const selectedBank = document.getElementById('modalBank').value;
@@ -1807,6 +1819,7 @@
                     settlementAccount: document.getElementById('modalAccountInput').value.trim(),
                     ifsc: document.getElementById('modalIfscInput').value.trim(),
                     iciciMid: selectedBank === 'ICICI' ? document.getElementById('modalIciciMidInput').value.trim() : '',
+                    utn: document.getElementById('modalUtnInput').value.trim(),
                     settlementType: 'DS' // Default to Direct Settlement
                 };
 
