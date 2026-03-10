@@ -1508,6 +1508,8 @@
                         <option value="">Select Method</option>
                         <option value="upi">UPI</option>
                         <option value="upi_autopay">UPI AutoPay</option>
+                        <option value="upi_oc217">UPI OC217</option>
+                        <option value="upi_autopay_oc217">UPI AutoPay OC217</option>
                         <option value="card">Card</option>
                         <option value="netbanking">Netbanking</option>
                         <option value="wallet">Wallet</option>
@@ -1519,13 +1521,12 @@
                     <label class="form-label">Feature <span class="required">*</span></label>
                     <select class="form-select" id="modalFeature" onchange="handleFeatureChange()">
                         <option value="">Select Feature</option>
-                        <option value="OC217">OC217 (SEBI-Compliant UPI)</option>
                         <option value="TPV">TPV (Third Party Verification)</option>
                         <option value="Recurring">Recurring Payments</option>
                         <option value="International">International Payments</option>
                         <option value="Other">Other</option>
                     </select>
-                    <div class="helper-text">Select OC217 for SEBI-regulated merchants requiring validated UPI IDs</div>
+                    <div class="helper-text">Additional features to enable for this terminal</div>
                 </div>
 
                 <div id="oc217BankOptions" class="hidden">
@@ -1653,35 +1654,26 @@
             document.getElementById('modalIciciMidInput').value = '';
             document.getElementById('modalUtnInput').value = '';
             document.getElementById('modalContinueBtn').disabled = true;
-
-            // Hide OC217 option by default (will show when UPI/UPI AutoPay is selected)
-            const featureDropdown = document.getElementById('modalFeature');
-            const oc217Option = featureDropdown.querySelector('option[value="OC217"]');
-            if (oc217Option) oc217Option.style.display = 'none';
         }
 
         function handlePaymentMethodChange() {
             const paymentMethod = document.getElementById('modalPaymentMethod').value;
             const featureDropdown = document.getElementById('modalFeature');
+            const bankOptions = document.getElementById('oc217BankOptions');
+            const bankSpecificFields = document.getElementById('bankSpecificFields');
 
             // Reset feature selection when payment method changes
             featureDropdown.value = '';
 
-            // Hide bank options and fields when payment method changes
-            document.getElementById('oc217BankOptions').classList.add('hidden');
-            document.getElementById('bankSpecificFields').classList.add('hidden');
-            document.getElementById('otherFeatureNote').classList.add('hidden');
+            // Reset bank selection
+            document.getElementById('modalBank').value = '';
+            bankSpecificFields.classList.add('hidden');
 
-            // Get OC217 option
-            const oc217Option = featureDropdown.querySelector('option[value="OC217"]');
-
-            // Show/hide OC217 option based on payment method
-            if (paymentMethod === 'upi' || paymentMethod === 'upi_autopay') {
-                // Show OC217 for UPI and UPI AutoPay
-                if (oc217Option) oc217Option.style.display = '';
+            // Show bank options for OC217 payment methods
+            if (paymentMethod === 'upi_oc217' || paymentMethod === 'upi_autopay_oc217') {
+                bankOptions.classList.remove('hidden');
             } else {
-                // Hide OC217 for other payment methods
-                if (oc217Option) oc217Option.style.display = 'none';
+                bankOptions.classList.add('hidden');
             }
 
             validateModalForm();
@@ -1689,22 +1681,13 @@
 
         function handleFeatureChange() {
             const feature = document.getElementById('modalFeature').value;
-            const bankOptions = document.getElementById('oc217BankOptions');
-            const bankSpecificFields = document.getElementById('bankSpecificFields');
             const otherNote = document.getElementById('otherFeatureNote');
 
-            // Reset bank selection and fields when feature changes
-            document.getElementById('modalBank').value = '';
-            bankSpecificFields.classList.add('hidden');
-
-            if (feature === 'OC217') {
-                bankOptions.classList.remove('hidden');
-                otherNote.classList.add('hidden');
-            } else if (feature) {
-                bankOptions.classList.add('hidden');
+            // Show info note when a feature is selected
+            // (Features no longer control bank options - payment method does)
+            if (feature) {
                 otherNote.classList.remove('hidden');
             } else {
-                bankOptions.classList.add('hidden');
                 otherNote.classList.add('hidden');
             }
 
@@ -1781,10 +1764,13 @@
             const paymentMethod = document.getElementById('modalPaymentMethod').value;
             const feature = document.getElementById('modalFeature').value;
 
-            let valid = merchantId && paymentMethod && feature;
+            // For OC217 methods, feature is optional (bank selection is required instead)
+            // For other methods, feature is required
+            const isOC217Method = paymentMethod === 'upi_oc217' || paymentMethod === 'upi_autopay_oc217';
+            let valid = merchantId && paymentMethod && (isOC217Method || feature);
 
-            // If OC217 is selected, validate bank and bank-specific fields
-            if (feature === 'OC217') {
+            // If OC217 payment method is selected, validate bank and bank-specific fields
+            if (isOC217Method) {
                 const bank = document.getElementById('modalBank').value;
                 valid = valid && bank;
 
@@ -1836,13 +1822,16 @@
             const merchantId = document.getElementById('modalMerchantId').value.trim();
             const paymentMethod = document.getElementById('modalPaymentMethod').value;
 
-            if (feature === 'OC217') {
+            // Check if OC217 payment method is selected
+            const isOC217Method = paymentMethod === 'upi_oc217' || paymentMethod === 'upi_autopay_oc217';
+
+            if (isOC217Method) {
                 // Store merchant ID and proceed to OC217 flow
                 formData.merchantId = merchantId.split(',')[0].trim(); // Take first ID if multiple
 
                 // Determine feature type based on payment method
-                // UPI → One Time, UPI AutoPay → Recurring
-                formData.featureType = paymentMethod === 'upi_autopay' ? 'OC217_RECURRING' : 'OC217_ONE_TIME';
+                // UPI OC217 → One Time, UPI AutoPay OC217 → Recurring
+                formData.featureType = paymentMethod === 'upi_autopay_oc217' ? 'OC217_RECURRING' : 'OC217_ONE_TIME';
 
                 // Get selected bank
                 const selectedBank = document.getElementById('modalBank').value;
