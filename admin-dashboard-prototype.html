@@ -1504,9 +1504,10 @@
 
                 <div class="form-group">
                     <label class="form-label">Payment Method <span class="required">*</span></label>
-                    <select class="form-select" id="modalPaymentMethod" onchange="validateModalForm()">
+                    <select class="form-select" id="modalPaymentMethod" onchange="handlePaymentMethodChange()">
                         <option value="">Select Method</option>
                         <option value="upi">UPI</option>
+                        <option value="upi_autopay">UPI AutoPay</option>
                         <option value="card">Card</option>
                         <option value="netbanking">Netbanking</option>
                         <option value="wallet">Wallet</option>
@@ -1653,6 +1654,43 @@
             document.getElementById('modalIciciMidInput').value = '';
             document.getElementById('modalUtnInput').value = '';
             document.getElementById('modalContinueBtn').disabled = true;
+
+            // Hide OC217 options by default (will show when UPI/UPI AutoPay is selected)
+            const featureDropdown = document.getElementById('modalFeature');
+            const oc217OneTimeOption = featureDropdown.querySelector('option[value="OC217_ONE_TIME"]');
+            const oc217RecurringOption = featureDropdown.querySelector('option[value="OC217_RECURRING"]');
+            if (oc217OneTimeOption) oc217OneTimeOption.style.display = 'none';
+            if (oc217RecurringOption) oc217RecurringOption.style.display = 'none';
+        }
+
+        function handlePaymentMethodChange() {
+            const paymentMethod = document.getElementById('modalPaymentMethod').value;
+            const featureDropdown = document.getElementById('modalFeature');
+
+            // Reset feature selection when payment method changes
+            featureDropdown.value = '';
+
+            // Hide bank options and fields when payment method changes
+            document.getElementById('oc217BankOptions').classList.add('hidden');
+            document.getElementById('bankSpecificFields').classList.add('hidden');
+            document.getElementById('otherFeatureNote').classList.add('hidden');
+
+            // Get OC217 options
+            const oc217OneTimeOption = featureDropdown.querySelector('option[value="OC217_ONE_TIME"]');
+            const oc217RecurringOption = featureDropdown.querySelector('option[value="OC217_RECURRING"]');
+
+            // Show/hide OC217 options based on payment method
+            if (paymentMethod === 'upi' || paymentMethod === 'upi_autopay') {
+                // Show OC217 options for UPI and UPI AutoPay
+                if (oc217OneTimeOption) oc217OneTimeOption.style.display = '';
+                if (oc217RecurringOption) oc217RecurringOption.style.display = '';
+            } else {
+                // Hide OC217 options for other payment methods
+                if (oc217OneTimeOption) oc217OneTimeOption.style.display = 'none';
+                if (oc217RecurringOption) oc217RecurringOption.style.display = 'none';
+            }
+
+            validateModalForm();
         }
 
         function handleFeatureChange() {
